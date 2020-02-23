@@ -2,7 +2,7 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const Manager = require("./lib/Manager");
 const Engineer = require("./lib/Engineer");
-// const GenerateHTML = require("./lib/genHTML");
+const GenerateHTML = require("./lib/genHTML");
 
 function GenMembersHTML(users) {
     let htm = " ";
