@@ -1,149 +1,95 @@
 const inquirer = require("inquirer");
-const fs = require("fs");
-const Manager = require("./lib/Manager");
-const Engineer = require("./lib/Engineer");
-const GenerateHTML = require("./lib/genHTML");
+const Engineer = require("./lib/engineer");
+const Intern = require("./lib/intern");
+const Manager = require("./lib/manager");
+// const card = require("./lib/main");
 
-function GenMembersHTML(users) {
-    let htm = " ";
-    users.forEach((user) => {
-        switch (user.role) {
-            case "Manager":
-                const mgr = new Manager(usr.name, usr.id, usr.email, usr.other);
-                htm += GenerateManager.generateHTML(mgr);
+ask();
+
+async function ask() {
+    var addPeople = "y";
+    var people = [];
+    do {
+        const response = await promptUser();
+        people.push(response);
+        addPeople = response.end;
+    } while (addPeople === "y");
+    console.log("Building HTML file of team.")
+    buildHtml(people);
+}
+
+function buildHtml(people) {
+    for (i = 0; i < people.length; i++) {
+        let person = people[i];
+        switch (person.position) {
+            case 'Manager':
+                const manager = new Manager(person.name, person.id, person.email, person.officeNumber);
+                // html = card.manager(manager);
                 break;
-            case "Engineer":
-                const eng = new Engineer(usr.name, usr.id, usr.email, usr.other);
-                htm += GenerateEngineer.generateHTML(eng);
+            case 'Engineer':
+                const engineer = new Engineer(person.name, person.id, person.email, person.github);
+                // html = card.engineer(engineer);
                 break;
-            case "Intern":
-                const int = new Intern(usr.name, usr.id, usr.email, usr.other);
-                htm += GenerateIntern.generateHTML(int);
-                break;
-            case "Employee":
-                const emp = new Employee(usr.name, usr.id, usr.email, usr.other);
-                htm += GenerateEmployee.generateHTML(int);
+            case 'Intern':
+                const intern = new Intern(person.name, person.id, person.email, person.school);
+                // html = card.intern(intern);
                 break;
         }
-    });
-    return html;
-}
-inquirer.registerPrompt("recursive", require("inquirer-recursive"));
 
-inquirer.prompt([{
-    type: "recursive",
-    message: "Add a new Team Member?",
-    name: "users",
-    prompts: [
-        {
-            type: "list",
-            message: "Choose Team Member Title:",
-            name: "Title",
-            choices: [
-                "Manager",
-                "Engineer",
-                "Employee",
-                "Intern",
-            ],
-        },
+    }
+
+}
+
+function promptUser() {
+    return inquirer.prompt([
         {
             type: "input",
             name: "name",
-            message: "What is the Team Member\'s Name?",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "Name is required!";
-            },
+            message: "Employee name?"
         },
         {
-            type: "input",
-            name: "id",
-            message: "Enter Team Member ID:",
-            validate(value) {
-                const digitsOnly = /\d+/;
-                if (digitsOnly.test(value)) { return true; }
-                return "Invalid ID! Must be a number!";
-            },
+            type: 'input',
+            name: 'id',
+            message: 'Company ID Number?'
         },
         {
-            type: "input",
-            name: "email",
-            message: "Enter the Team Member\'s Email:",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "Email is required!";
-            },
+            type: 'list',
+            message: 'Position:',
+            name: 'position',
+            choices: [
+                'Manager',
+                'Engineer',
+                'Intern',
+            ],
         },
         {
-            when(response) {
-                if (response.role === "Manager") {
-                    return true;
-                }
-                return false;
-            },
-            type: "input",
-            name: "other",
-            message: "Enter the Manager\'s Office Number:",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "Office Number is required!";
-            },
-        },
-        {
-            when(response) {
+            type: 'input',
+            message: 'Employee Email Address?',
+            name: 'email',
 
-                if (response.role === "Engineer") {
-                    return true;
-                }
-                return false;
-            },
-            type: "input",
-            name: "other",
-            message: "Enter the Engineer\'s GitHub Username:",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "GitHub Username is required!";
-            },
         },
         {
-            when(response) {
-                if (response.role === "Intern") {
-                    return true;
-                }
-                return false;
-            },
-            type: "input",
-            name: "other",
-            message: "Enter the Intern\'s School Name:",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "School Name is required!";
-            },
+            type: 'input',
+            message: 'Manager Office Number',
+            name: 'officeNumber',
+            when: (answer) => answer.position === 'Manager'
         },
         {
-            when(response) {
-                if (response.role === "Employee") {
-                    return true;
-                }
-                return false;
-            },
-            type: "input",
-            name: "other",
-            message: "Enter the Employee\'s ID:",
-            validate(value) {
-                if ((/.+/).test(value)) { return true; }
-                return "ID is required!";
-            },
+            type: 'input',
+            message: 'what is Engineer GitHub Username?',
+            name: 'github',
+            when: (answer) => answer.position === 'Engineer'
         },
-    ],
-}])
-    .then((members) => {
-        let html = GenMembersHTML(members.users);
-        htm = GenerateHTML.generateHTML(htm);
-        fs.writeFile("./output/team.html", html, (err) => {
-            if (err) {
-                return console.log(err);
-            }
-            console.log("Success! File written to ./output/team.html");
-        });
-    });
+        {
+            type: 'input',
+            message: 'What school did Intern attend?',
+            name: 'school',
+            when: (answer) => answer.position === 'Intern'
+        },
+        {
+            type: "input",
+            name: "end",
+            message: "add another user [y/n]?"
+        },
+    ]);
+}
